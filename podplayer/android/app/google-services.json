@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "772056768476",
+    "project_id": "podplayer-4a03f",
+    "storage_bucket": "podplayer-4a03f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:772056768476:android:a2287c2893e59e6ccef919",
+        "android_client_info": {
+          "package_name": "com.example.podplayer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTcLroLxIiiYkFngt5Ki5o-Q1WiZxzc0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
