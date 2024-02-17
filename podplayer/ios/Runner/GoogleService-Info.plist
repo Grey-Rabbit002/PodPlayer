@@ -2,18 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CLIENT_ID</key>
+	<string>772056768476-tp8jtnnaperefpbe6htoq690ddmv808h.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.772056768476-tp8jtnnaperefpbe6htoq690ddmv808h</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAhCoOf2eI39gKAKJfm0SqCzciCAuwM1BI</string>
+	<string>AIzaSyAVRx7te9oqAgH0KI4MYvltV2EYjWwp3DM</string>
 	<key>GCM_SENDER_ID</key>
-	<string>463707758788</string>
+	<string>772056768476</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.example.podplayer</string>
 	<key>PROJECT_ID</key>
-	<string>podplayer-ed61c</string>
+	<string>podplayer-4a03f</string>
 	<key>STORAGE_BUCKET</key>
-	<string>podplayer-ed61c.appspot.com</string>
+	<string>podplayer-4a03f.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:463707758788:ios:69e0f244e393eccc60e991</string>
+	<string>1:772056768476:ios:e592938e3f1b2694cef919</string>
 </dict>
 </plist>

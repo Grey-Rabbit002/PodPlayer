@@ -1,10 +1,12 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<String?> getLatestPost() async {
   try {
-    // print("trying");
+    print("trying");
     QuerySnapshot<Map<String, dynamic>> querySnapshot =
         await FirebaseFirestore.instance
             .collection('post')
@@ -16,7 +18,7 @@ Future<String?> getLatestPost() async {
     if (querySnapshot.docs.isNotEmpty) {
       // Get the data of the latest document
       Map<String, dynamic> latestPost = querySnapshot.docs.first.data();
-      // print(latestPost);
+      log(latestPost as String);
       return latestPost['url'];
     } else {
       // No documents found

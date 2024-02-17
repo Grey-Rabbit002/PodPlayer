@@ -1,8 +1,8 @@
 // ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages
 
 import 'dart:io';
-import 'package:podplayer/screens/showSnack.dart';
-import 'package:podplayer/url_provider.dart';
+import 'package:podplayer/utils/showSnack.dart';
+import 'package:podplayer/provider/url_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';

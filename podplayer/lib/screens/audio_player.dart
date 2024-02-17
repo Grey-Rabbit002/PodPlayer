@@ -1,10 +1,12 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:developer';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:podplayer/screens/firebase_fetch.dart';
-import 'package:podplayer/screens/showSnack.dart';
-import 'package:podplayer/url_provider.dart';
+import 'package:podplayer/controller/firebase_fetch.dart';
+import 'package:podplayer/utils/showSnack.dart';
+import 'package:podplayer/provider/url_provider.dart';
 import "package:provider/provider.dart";
 
 class Player extends StatefulWidget {
@@ -19,14 +21,14 @@ class _PlayerState extends State<Player> {
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
   bool isPlaying = false;
-  String playerUrl = '';
+  late String playerUrl;
 
   getUrl() async {
     final String? playurl = await getLatestPost();
     setState(() {
       playerUrl = playurl!;
     });
-    // print(playerUrl);
+    log(playerUrl);
   }
 
   @override
@@ -139,7 +141,8 @@ class NeumorphicCircleAvatar extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isPlaying;
 
-  const NeumorphicCircleAvatar({super.key, required this.onPressed, required this.isPlaying});
+  const NeumorphicCircleAvatar(
+      {super.key, required this.onPressed, required this.isPlaying});
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +155,7 @@ class NeumorphicCircleAvatar extends StatelessWidget {
           shape: BoxShape.circle,
           color: Colors.grey.shade300,
           boxShadow: [
-           const BoxShadow(
+            const BoxShadow(
               offset: Offset(-5.0, -5.0),
               blurRadius: 10.0,
               color: Colors.white,
@@ -186,7 +189,8 @@ class NeumorphicImage extends StatelessWidget {
   final double height;
   final double borderRadius;
 
-  const NeumorphicImage({super.key, 
+  const NeumorphicImage({
+    super.key,
     required this.imageUrl,
     required this.height,
     required this.borderRadius,
