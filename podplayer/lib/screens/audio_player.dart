@@ -5,9 +5,11 @@ import 'dart:developer';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:podplayer/controller/firebase_fetch.dart';
+import 'package:podplayer/neomorphs/neocircleAvatar.dart';
+import 'package:podplayer/neomorphs/neoimage.dart';
+import 'package:podplayer/neomorphs/neotext.dart';
 import 'package:podplayer/utils/showSnack.dart';
-import 'package:podplayer/provider/url_provider.dart';
-import "package:provider/provider.dart";
+import 'package:google_fonts/google_fonts.dart';
 
 class Player extends StatefulWidget {
   const Player({Key? key}) : super(key: key);
@@ -16,17 +18,21 @@ class Player extends StatefulWidget {
   State<Player> createState() => _PlayerState();
 }
 
-class _PlayerState extends State<Player> {
+class _PlayerState extends State<Player> with WidgetsBindingObserver {
   final AudioPlayer audioPlayer = AudioPlayer();
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
   bool isPlaying = false;
-  late String playerUrl;
+  late String playerUrl = '';
+  List<String?>? urls = [];
+  int selectedIndex = -1;
 
   getUrl() async {
     final String? playurl = await getLatestPost();
+    final List<String?> url = await allPosts();
     setState(() {
       playerUrl = playurl!;
+      urls = url;
     });
     log(playerUrl);
   }
@@ -53,207 +59,183 @@ class _PlayerState extends State<Player> {
         position = Duration.zero;
       });
     });
+
+    // Listen to app lifecycle changes
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    // Remove the observer
+    WidgetsBinding.instance.removeObserver(this);
+    // Stop any ongoing playback and release resources
+    audioPlayer.stop();
+    audioPlayer.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      // When the app is paused or inactive, stop audio playback
+      audioPlayer.stop();
+      setState(() {
+        position = Duration.zero;
+        isPlaying = false;
+      });
+    }
+  }
+
+  String formattedDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$twoDigitMinutes:$twoDigitSeconds";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade200,
-      body: Consumer<URLProvider>(
-        builder: (context, urlProv, child) {
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 50,
-                ),
-                const NeumorphicText(
-                  text: "Your Pod is Here",
-                  style: TextStyle(fontSize: 18, letterSpacing: 8),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                const NeumorphicImage(
-                  imageUrl:
-                      "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                  height: 200,
-                  borderRadius: 20,
-                ),
-                Slider(
-                  activeColor: Colors.black45,
-                  thumbColor: Colors.grey,
-                  min: 0,
-                  max: duration.inSeconds.toDouble(),
-                  value: position.inSeconds.toDouble(),
-                  onChanged: (value) {
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              height: 50,
+            ),
+            NeumorphicText(
+              text: "Your Pod is Here",
+              style: GoogleFonts.marcellusSc(fontSize: 18, letterSpacing: 8),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            const NeumorphicImage(
+              imageUrl:
+                  "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+              height: 200,
+              borderRadius: 20,
+            ),
+            Slider(
+              activeColor: Colors.black45,
+              thumbColor: Colors.grey,
+              min: 0,
+              max: duration.inSeconds.toDouble(),
+              value: position.inSeconds.toDouble(),
+              onChanged: (value) {
+                setState(() {
+                  position = Duration(seconds: value.toInt());
+                });
+              },
+              onChangeEnd: (value) {
+                audioPlayer.seek(position);
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(formattedDuration(position)),
+                  Text(formattedDuration(duration)),
+                ],
+              ),
+            ),
+            NeumorphicCircleAvatar(
+              onPressed: () async {
+                if (isPlaying) {
+                  setState(() {
+                    isPlaying = false;
+                  });
+                  await audioPlayer.pause();
+                } else {
+                  if (playerUrl.isNotEmpty) {
                     setState(() {
-                      position = Duration(seconds: value.toInt());
+                      isPlaying = true;
                     });
-                  },
-                  onChangeEnd: (value) {
-                    audioPlayer.seek(position);
-                  },
+                    await audioPlayer.play(UrlSource(playerUrl));
+                  } else {
+                    showSnackBar("no file found", context);
+                  }
+                }
+              },
+              isPlaying: isPlaying,
+            ),
+            const SizedBox(
+              height: 40,
+            ),
+            if (urls != null && urls!.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(position.toString()),
-                      Text((duration - position).toString())
-                    ],
-                  ),
-                ),
-                NeumorphicCircleAvatar(
-                  onPressed: () async {
-                    if (isPlaying) {
-                      setState(() {
-                        isPlaying = false;
-                      });
-                      await audioPlayer.pause();
-                    } else {
-                      if (playerUrl.isNotEmpty) {
+                child: ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: urls!.length,
+                  itemBuilder: (context, index) {
+                    final trimmedTitle = urls![index]!.length > 150
+                        ? '${urls![index]!.substring(80, 110)}...'
+                        : urls![index]!;
+
+                    return GestureDetector(
+                      onTap: () async {
+                        await audioPlayer.stop();
+                        setState(() {
+                          playerUrl = urls![index]!;
+                          isPlaying = false;
+                          selectedIndex = index;
+                        });
+                        await audioPlayer.play(UrlSource(playerUrl));
                         setState(() {
                           isPlaying = true;
                         });
-                        await audioPlayer.play(UrlSource(playerUrl));
-                      } else {
-                        showSnackBar("no file found", context);
-                      }
-                    }
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                trimmedTitle,
+                                style: GoogleFonts.gabriela(fontSize: 16),
+                              ),
+                            ),
+                            if (selectedIndex == index)
+                              const Icon(
+                                Icons.music_note_rounded,
+                                color: Colors.orange,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
                   },
-                  isPlaying: isPlaying,
                 ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class NeumorphicCircleAvatar extends StatelessWidget {
-  final VoidCallback onPressed;
-  final bool isPlaying;
-
-  const NeumorphicCircleAvatar(
-      {super.key, required this.onPressed, required this.isPlaying});
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: const Offset(8.0, 8.0),
-      child: Container(
-        width: 110,
-        height: 110,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.grey.shade300,
-          boxShadow: [
-            const BoxShadow(
-              offset: Offset(-5.0, -5.0),
-              blurRadius: 10.0,
-              color: Colors.white,
-            ),
-            BoxShadow(
-              offset: const Offset(5.0, 5.0),
-              blurRadius: 10.0,
-              color: Colors.grey.shade500,
-            ),
+              ),
           ],
         ),
-        child: CircleAvatar(
-          radius: 55,
-          backgroundColor: Colors.transparent,
-          child: IconButton(
-            iconSize: 50,
-            onPressed: onPressed,
-            icon: Icon(
-              isPlaying ? Icons.pause_rounded : Icons.play_arrow,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class NeumorphicImage extends StatelessWidget {
-  final String imageUrl;
-  final double height;
-  final double borderRadius;
-
-  const NeumorphicImage({
-    super.key,
-    required this.imageUrl,
-    required this.height,
-    required this.borderRadius,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade300,
-            offset: const Offset(8.0, 8.0),
-            blurRadius: 10.0,
-            spreadRadius: 5.0,
-          ),
-          const BoxShadow(
-            color: Colors.white,
-            offset: Offset(-5.0, -5.0),
-            blurRadius: 10.0,
-            spreadRadius: 5.0,
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: Image.network(
-          filterQuality: FilterQuality.high,
-          color: Colors.grey.shade400,
-          colorBlendMode: BlendMode.colorBurn,
-          imageUrl,
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
-  }
-}
-
-class NeumorphicText extends StatelessWidget {
-  final String text;
-  final TextStyle style;
-
-  const NeumorphicText({super.key, required this.text, required this.style});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: style.copyWith(
-        shadows: [
-          Shadow(
-            offset: const Offset(5.0, 5.0),
-            blurRadius: 10.0,
-            color: Colors.grey.shade300,
-          ),
-          Shadow(
-            offset: const Offset(-5.0, -5.0),
-            blurRadius: 10.0,
-            color: Colors.grey.shade400,
-          ),
-        ],
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'package:podplayer/constants/app_colors.dart';
 import 'package:podplayer/controller/firebase_controller.dart';
 import 'package:podplayer/utils/neo_container.dart';
 import 'package:podplayer/utils/showSnack.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class GSignUp extends StatefulWidget {
   const GSignUp({super.key});
@@ -62,6 +63,14 @@ class _GSignUpState extends State<GSignUp> {
                     child: const SizedBox(),
                   ),
                 ),
+                const SizedBox(
+                  height: 40,
+                ),
+                Text(
+                  "Continue with Google",
+                  style: GoogleFonts.quando(
+                      fontSize: 32, fontStyle: FontStyle.italic),
+                )
               ],
             ),
           ),
